@@ -1,47 +1,58 @@
-import requests #for making HTTP requests: to send a POST request to the F2Pool API and handle the response.
-import json #provides methods to handle JSON: encode the payload into a JSON string for display and to decode the content of the config.json file
+import requests
+import json
+import time
+from datetime import datetime
 
 API_BASE_URL = "https://api.f2pool.com/v2"
 
-# load the API secret from a config.json file:
+# Load the API secret from a config.json file:
 with open('config.json', 'r') as f:
     config = json.load(f)
 API_SECRET = config["F2P_API_SECRET"]
 
-# define the headers required for the API request:
+# Define the headers required for the API request:
 HEADERS = {
     'Content-Type': 'application/json',
     'F2P-API-SECRET': API_SECRET
 }
 
-
-def get_hashrate(mining_user_name, currency):
-    endpoint = f"{API_BASE_URL}/hash_rate/info"
+def get_hashrate_history(mining_user_name, currency, start_time, end_time):
+    endpoint = f"{API_BASE_URL}/hash_rate/history"
+    
+    # We're setting the interval to 3600 seconds for hourly data
     payload = {
         "mining_user_name": mining_user_name,
-        "currency": currency
+        "currency": currency,
+        "interval": 3600,
+        "duration": end_time - start_time
     }
 
     response = requests.post(endpoint, headers=HEADERS, json=payload)
     if response.status_code == 200:
-        data = response.json() #uses the .json() method (via requests library) to parse JSON response and convert it into a Python dictionary
-        return data["info"]
+        data = response.json()
+        if "history" in data:
+            return data["history"]
+        else:
+            print(f"Unexpected data received: {data}")
+            return None
     else:
         print(f"Error {response.status_code}: {response.text}")
         return None
 
-# Set default values for username and currency
+# Define the start and end times for Aug
+start_time = int(time.mktime(datetime(2023, 9, 20).timetuple()))
+end_time = int(time.mktime(datetime(2023, 9, 21).timetuple()))
+
+# Fetch the hashrate history for Aug
 username = "sgkpg"
 currency = "bitcoin"
+hashrate_history = get_hashrate_history(username, currency, start_time, end_time)
 
-# if __name__ == "__main__":
-#     username = input("Enter your mining username: ")
-#     currency = input("Enter the currency (e.g., bitcoin, ethereum): ")
-
-hashrate_info = get_hashrate(username, currency)
-if hashrate_info:
-    print("\nHashrate Information:")
-    print(f"Name: {hashrate_info['name']}")
-    print(f"Current Hashrate: {hashrate_info['hash_rate']} H/s")
-    print(f"Last 1 Hour Hashrate: {hashrate_info['h1_hash_rate']} H/s")
-    print(f"Last 24 Hours Hashrate: {hashrate_info['h24_hash_rate']} H/s")
+if hashrate_history:
+    # Print the fetched hashrate data for Aug
+    for entry in hashrate_history:
+        timestamp = datetime.utcfromtimestamp(entry["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
+        hashrate = entry["hash_rate"]
+        print(f"Timestamp: {timestamp}, Hashrate: {hashrate} H/s")
+else:
+    print("Failed to retrieve hashrate history.")
