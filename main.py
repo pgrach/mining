@@ -1,5 +1,5 @@
-import requests
-import json
+import requests #for making HTTP requests: to send a POST request to the F2Pool API and handle the response.
+import json 
 
 API_BASE_URL = "https://api.f2pool.com/v2"
 with open('config.json', 'r') as f:
