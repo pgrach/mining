@@ -1,58 +1,49 @@
 import requests
-import json
-import time
-from datetime import datetime
+import os
+from dotenv import load_dotenv
 
-API_BASE_URL = "https://api.f2pool.com/v2"
+def initialize_environment():
+    """Load environment variables and return necessary configurations."""
+    # Load environment variables from .env file
+    load_dotenv()
 
-# Load the API secret from a config.json file:
-with open('config.json', 'r') as f:
-    config = json.load(f)
-API_SECRET = config["F2P_API_SECRET"]
+    # Retrieve values from the environment variables
+    api_secret = os.getenv("F2POOL_API_SECRET")
+    mining_user_name = os.getenv("MINING_USER_NAME")
+    currency = os.getenv("CURRENCY")
 
-# Define the headers required for the API request:
-HEADERS = {
-    'Content-Type': 'application/json',
-    'F2P-API-SECRET': API_SECRET
-}
+    return api_secret, mining_user_name, currency
 
-def get_hashrate_history(mining_user_name, currency, start_time, end_time):
-    endpoint = f"{API_BASE_URL}/hash_rate/history"
+def fetch_hashrate_info(api_secret, mining_user_name, currency):
+    """Fetch the hashrate information for the given user and currency."""
+    # API endpoint
+    url = f"https://api.f2pool.com/v2/hash_rate/info"
     
-    # We're setting the interval to 3600 seconds for hourly data
-    payload = {
-        "mining_user_name": mining_user_name,
-        "currency": currency,
-        "interval": 3600,
-        "duration": end_time - start_time
+    # Request headers
+    headers = {
+        'Content-Type': 'application/json',
+        'F2P-API-SECRET': api_secret
     }
-
-    response = requests.post(endpoint, headers=HEADERS, json=payload)
+    
+    # Request payload
+    data = {
+        "mining_user_name": mining_user_name,
+        "currency": currency
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
     if response.status_code == 200:
-        data = response.json()
-        if "history" in data:
-            return data["history"]
-        else:
-            print(f"Unexpected data received: {data}")
-            return None
+        return response.json()
     else:
-        print(f"Error {response.status_code}: {response.text}")
+        print(f"Error: {response.status_code}")
         return None
 
-# Define the start and end times for Aug
-start_time = int(time.mktime(datetime(2023, 9, 20).timetuple()))
-end_time = int(time.mktime(datetime(2023, 9, 21).timetuple()))
+def main():
+    """Main function to handle the execution flow."""
+    api_secret, mining_user_name, currency = initialize_environment()
+    mining_performance_data = fetch_hashrate_info(api_secret, mining_user_name, currency)
+    print(mining_performance_data)
 
-# Fetch the hashrate history for Aug
-username = "sgkpg"
-currency = "bitcoin"
-hashrate_history = get_hashrate_history(username, currency, start_time, end_time)
-
-if hashrate_history:
-    # Print the fetched hashrate data for Aug
-    for entry in hashrate_history:
-        timestamp = datetime.utcfromtimestamp(entry["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
-        hashrate = entry["hash_rate"]
-        print(f"Timestamp: {timestamp}, Hashrate: {hashrate} H/s")
-else:
-    print("Failed to retrieve hashrate history.")
+if __name__ == "__main__":
+    main()
