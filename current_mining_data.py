@@ -1,4 +1,3 @@
-import requests
 from common import initialize_environment, post_to_f2pool
 
 def fetch_hashrate_info(api_secret, mining_user_name, currency):
