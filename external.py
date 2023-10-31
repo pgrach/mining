@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 import requests
 
-def fetch_closest_difficulty_for_timestamp(target_timestamp):
-    """Fetch the closest difficulty for a specific timestamp."""
+def fetch_closest_difficulty_and_price_for_timestamp(target_timestamp):
+    """Fetch the closest difficulty and BTC price for a specific timestamp."""
 
     def convert_to_unix_timestamp(date_string):
         try:
@@ -25,16 +25,26 @@ def fetch_closest_difficulty_for_timestamp(target_timestamp):
     
     # Find the closest timestamp in the returned data
     closest_difficulty = None
+    closest_price = None
+    closest_timestamp = None
     min_diff = float('inf')
     for entry in data['difficulty']:
         diff = abs(convert_to_unix_timestamp(entry['x']) - target_timestamp)
         if diff < min_diff:
             min_diff = diff
             closest_difficulty = entry['y']
+            closest_timestamp = entry['x']
+
+    # Find the BTC price for the closest timestamp
+    for entry in data['price']:
+        if entry['x'] == closest_timestamp:
+            closest_price = entry['y']
+            break
     
-    return closest_difficulty
+    return closest_difficulty, closest_price
 
 # Example usage
-timestamp = 1698789000  # Replace this with your specific timestamp
-difficulty = fetch_closest_difficulty_for_timestamp(timestamp)
+timestamp = 1685239903  # Replace this with your specific timestamp
+difficulty, price = fetch_closest_difficulty_and_price_for_timestamp(timestamp)
 print(f"Closest difficulty to timestamp {timestamp}: {difficulty}")
+print(f"BTC price at that time: {price}")
