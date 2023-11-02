@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import pandas as pd
 
 DATABASE_FILENAME = 'mining_data.db'
 DATABASE_FILEPATH = os.path.join(os.getcwd(), DATABASE_FILENAME)
@@ -48,10 +49,20 @@ def update_difficulty_and_price(timestamp, difficulty, price):
         )
         conn.commit()
 
+def export_to_excel(filename='mining_data.xlsx'):
+    """Export data from the database to an Excel file."""
+    with connect() as conn:
+        # Query the database
+        query = "SELECT * FROM hashrate_history"
+        df = pd.read_sql_query(query, conn)
+
+        # Export to Excel
+        df.to_excel(filename, index=False)
+        print(f'Data exported to {filename}')
 
 def main():
     """Main function to create tables when this script runs."""
     create_tables()
 
 if __name__ == "__main__":
-    main()
+        export_to_excel()
