@@ -2,7 +2,9 @@ import requests
 import os
 from dotenv import load_dotenv
 import pandas as pd
+import logging
 import storage
+import external
 
 def initialize_environment():
     """Load environment variables and return necessary configurations."""
@@ -63,6 +65,8 @@ def fetch_transactions_list(api_secret, mining_user_name, currency, transaction_
     return post_to_f2pool(api_secret, endpoint, additional_data)
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
     # Initialize the database and create tables if they don't exist
     storage.create_tables()
 
@@ -77,7 +81,19 @@ if __name__ == "__main__":
         print(history_df_filtered)
         print(history_df_filtered.shape)
         storage.insert_hashrate_history(history_df_filtered)
-        print(f"Data inserted into the database at {storage.DATABASE_FILEPATH}")
+        logging.info(f"Data inserted into the database at {storage.DATABASE_FILEPATH}")
+
+    # Get timestamps and records from the database
+    timestamp_records = storage.get_timestamps_and_records()
+
+    # Fetch and update difficulty and price for each timestamp, if necessary
+    for timestamp, difficulty, price in timestamp_records:
+        if difficulty is None or price is None:
+            difficulty, price = external.fetch_closest_difficulty_and_price_for_timestamp(int(timestamp))
+            storage.update_difficulty_and_price(timestamp, difficulty, price)
+            logging.info(f"Updated difficulty and price for timestamp {timestamp}.")
+        else:
+            logging.info(f"Difficulty and price already recorded for timestamp {timestamp}.")
 
     # Fetch the transactions list
     transactions = fetch_transactions_list(api_secret, mining_user_name, currency)

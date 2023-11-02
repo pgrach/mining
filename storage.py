@@ -16,7 +16,9 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS hashrate_history (
                 timestamp TEXT NOT NULL,
                 hash_rate REAL NOT NULL,
-                online_miners INTEGER NOT NULL
+                online_miners INTEGER NOT NULL,
+                difficulty REAL,
+                price REAL
             );
         """
         cursor.execute(create_hashrate_table_query)
@@ -26,6 +28,26 @@ def insert_hashrate_history(df):
     """Insert hashrate history data into the database."""
     with connect() as conn:
         df.to_sql('hashrate_history', conn, if_exists='append', index=False)
+
+# retrieving the timestamp from db and storing difficulty and BTC price next to it
+
+def get_timestamps_and_records():
+    """Retrieve timestamps along with difficulty and price records from the database."""
+    with connect() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT timestamp, difficulty, price FROM hashrate_history")
+        return cursor.fetchall()
+        
+def update_difficulty_and_price(timestamp, difficulty, price):
+    """Update the database with difficulty and BTC price for a specific timestamp."""
+    with connect() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE hashrate_history SET difficulty = ?, price = ? WHERE timestamp = ?",
+            (difficulty, price, timestamp)
+        )
+        conn.commit()
+
 
 def main():
     """Main function to create tables when this script runs."""
