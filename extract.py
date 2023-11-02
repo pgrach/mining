@@ -2,6 +2,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import pandas as pd
+import storage
 
 def initialize_environment():
     """Load environment variables and return necessary configurations."""
@@ -44,8 +45,8 @@ def fetch_account_hashrate_history(api_secret, mining_user_name, currency):
     payload = {
         "mining_user_name": mining_user_name,
         "currency": currency,
-        "interval": 600,  # 10 minutes in seconds
-        "duration": 2592000  # 30 days in seconds
+        "interval": 600,  # 10 minutes in seconds (granularity)
+        "duration": 2592000  # 30 days in seconds (data for past 30 days)
     }
     # Return the response
     return post_to_f2pool(api_secret, endpoint, payload)    
@@ -62,8 +63,11 @@ def fetch_transactions_list(api_secret, mining_user_name, currency, transaction_
     return post_to_f2pool(api_secret, endpoint, additional_data)
 
 if __name__ == "__main__":
+    # Initialize the database and create tables if they don't exist
+    storage.create_tables()
+
     api_secret, mining_user_name, currency = initialize_environment()
-    
+
     # Fetch the account hashrate history
     history = fetch_account_hashrate_history(api_secret, mining_user_name, currency)
     if history:
@@ -72,6 +76,8 @@ if __name__ == "__main__":
         history_df_filtered = history_df[['timestamp', 'hash_rate', 'online_miners']]
         print(history_df_filtered)
         print(history_df_filtered.shape)
+        storage.insert_hashrate_history(history_df_filtered)
+        print(f"Data inserted into the database at {storage.DATABASE_FILEPATH}")
 
     # Fetch the transactions list
     transactions = fetch_transactions_list(api_secret, mining_user_name, currency)
@@ -81,5 +87,3 @@ if __name__ == "__main__":
         transactions_df_filtered = transactions_df[['changed_balance', 'created_at']]
         print(transactions_df_filtered)
         print(transactions_df_filtered.shape)
-
-    

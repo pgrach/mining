@@ -44,7 +44,7 @@ def fetch_closest_difficulty_and_price_for_timestamp(target_timestamp):
     return closest_difficulty, closest_price
 
 # Example usage
-timestamp = 1685239903  # Replace this with your specific timestamp
+timestamp = 1696260600  # Replace this with your specific timestamp
 difficulty, price = fetch_closest_difficulty_and_price_for_timestamp(timestamp)
 print(f"Closest difficulty to timestamp {timestamp}: {difficulty}")
 print(f"BTC price at that time: {price}")
