@@ -1,40 +1,48 @@
-Cryptocurrency Mining Performance Dashboard
+# Cryptocurrency Mining Performance Dashboard
 
-Objective: 
+## Objective
 Create a comprehensive dashboard that provides real-time insights into cryptocurrency mining operations using the f2pool's APIs (secondary data).
 
-Data Sources:
-https://www.f2pool.com/api_doc: Use the f2pool API to fetch data regarding mining performance.
-External APIs: 
-1) difficulty level https://academy.braiins.com/en/mining-insights/public-api/
-2) forex rate for any given date
+## Data Sources
+- [f2pool API](https://www.f2pool.com/api_doc): Use the f2pool API to fetch data regarding mining performance.
+- External APIs:
+  1. [Mining difficulty level](https://academy.braiins.com/en/mining-insights/public-api/) - requires alternative API sources
+  2. Forex rates for any given date (planned for future implementation - pffi).
 
-Datasets: 
-such as cryptocurrency market prices, for a holistic view.
+## Rate Limits and Data overall Limitations 
+- **braiins**: A maximum of 500 requests per hour and 2,000 per day. Granularity issue: cannot pull prices at 10 min granularity.
 
-Data Pipeline:
-Extract: Use the provided API endpoints to fetch data about the user's mining hashrate performance, transaction history, relative BTC price and difficulty levels.
+## Datasets
+Planned for future implementation: Incorporate additional data, such as BTC market prices, for a more comprehensive analysis.
 
-Transform: Clean and aggregate the data. Calculate key metrics such as total revenue, average hashrate, stale rate, and more. Merge data from different sources to give a holistic view.
+## Data Pipeline
+- **Extract**: Retrieve data on mining hashrate performance, transaction history, relative BTC price, and difficulty levels from the specified API endpoints.
+- **Transform**: Cleanse and aggregate data to calculate essential metrics such as revenue, average hashrate, stale rate, etc. Integrate data from various sources for a complete overview.
+- **Load**: Transition the transformed data into an SQLite database. This stage also includes further data extraction, incorporating BTC price and Difficulty level data from the **braiins** API
+![Loading Diff Price](/assets/loading_diff_price.png)
+- **Import to Power BI**: Since Power BI does not support SQLite natively and the typical ODBC driver connection was not an option in my environment, an alternative approach was required to convert the `mining_data.db` to an Excel file for use.
 
-Load: Store the transformed data in an SQL database or cloud storage for easy retrieval.
+## End Outcome
+### Dashboard
+Underestimated the effort required to use Power BI versus the time available. Tasks that initially seemed simple, such as converting Unix timestamps to a human-readable format or calculating revenue from the hashrate, required extensive data cleaning and additional transformations in Power Query.
+![Current state](/assets/dashboard.png)
 
-End Outcome:
-Dashboard: Create a visually appealing dashboard that displays key metrics such as:
-Current balance and total payments.
-Mining performance metrics (current hashrate, average hashrate, rejected hashrate, etc.).
-Transaction history with filtering options.
-Distribution details for hashrate and revenue.
-Pool information like recent blocks mined.
-Allow users to drill down into specific metrics for a detailed view. For instance, clicking on a specific cryptocurrency could show its detailed mining performance.
+**Learning takeaways:**
+- **Visualization**: The Drill Down Timeline PRO is an effective tool for timeline visualization.
+- **Non-Standard Time Periods/Independent Hierarchies**: Timeline granularity is crucial in my case (needing to zoom in to 10-minute intervals), where the default Power BI date hierarchy is inadequate. Understanding how to work with non-standard time periods and creating independent hierarchies are significant learning points. 
 
-Additional Steps:
-Scheduling: Use Apache Airflow or cron jobs to regularly run the data pipeline, ensuring that the dashboard displays up-to-date information.
-Documentation: Create a detailed README file that explains the purpose of the project, the data sources used, the transformations applied, and how to use the dashboard. Include screenshots and sample queries.
-Version Control: Maintain a GitHub repository for the project, ensuring that code changes are committed regularly with meaningful commit messages.
-Stretch Goals:
+The final dashboard should provide:
+- Current balance and total payments (pffi)
+- Mining performance metrics (current hashrate - pffi, average hashrate, rejected hashrate, etc.).
+- Transaction history with filtering options (pffi).
+- Distribution details for hashrate and revenue.
+- Allow users to drill down into specific metrics for a detailed view.
 
-Predictive Analytics: Use the historical mining performance data to predict future earnings or hashrate performance.
+## Additional Steps (pffi)
+- **Scheduling**: Use Apache Airflow to regularly run the data pipeline, ensuring that the dashboard displays up-to-date information.
+- **Version Control**: Maintain a GitHub repository for the project, ensuring that code changes are committed regularly with meaningful commit messages.
 
-Alerts: Implement a system that notifies the user when certain metrics (like hashrate dropping below a threshold) are triggered.
-Integration with Other Platforms: Consider integrating with other mining platforms or financial tools to provide a unified view of the user's cryptocurrency operations.
+## Stretch Goals
+- **Predictive Analytics**: Use the historical mining performance data to predict future earnings or hashrate performance.
+- **Alerts**: Implement a system that notifies the user when certain metrics (like hashrate dropping below a threshold) are triggered.
+- **Integration with Other Platforms**: Consider integrating with other mining platforms or financial tools to provide a unified view of the user's cryptocurrency operations.

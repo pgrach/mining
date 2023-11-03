@@ -52,7 +52,6 @@ def fetch_account_hashrate_history(api_secret, mining_user_name, currency):
     }
     # Return the response
     return post_to_f2pool(api_secret, endpoint, payload)    
-    
 
 def fetch_transactions_list(api_secret, mining_user_name, currency, transaction_type="all"):
     """Fetch all transactions for the given mining user name and currency."""
