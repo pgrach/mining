@@ -19,12 +19,17 @@ Planned for future implementation: Incorporate additional data, such as BTC mark
 - **Extract**: Retrieve data on mining hashrate performance, transaction history, relative BTC price, and difficulty levels from the specified API endpoints.
 - **Transform**: Cleanse and aggregate data to calculate essential metrics such as revenue, average hashrate, stale rate, etc. Integrate data from various sources for a complete overview.
 - **Load**: Transition the transformed data into an SQLite database. This stage also includes further data extraction, incorporating BTC price and Difficulty level data from the **braiins** API
+
 ![Loading Diff Price](/assets/loading_diff_price.png)
+
 - **Import to Power BI**: Since Power BI does not support SQLite natively and the typical ODBC driver connection was not an option in my environment, an alternative approach was required to convert the `mining_data.db` to an Excel file for use.
+
+![Map](/assets/map.jpg)
 
 ## End Outcome
 ### Dashboard
 Underestimated the effort required to use Power BI versus the time available. Tasks that initially seemed simple, such as converting Unix timestamps to a human-readable format or calculating revenue from the hashrate, required extensive data cleaning and additional transformations in Power Query.
+
 ![Current state](/assets/dashboard.png)
 
 **Learning takeaways:**
